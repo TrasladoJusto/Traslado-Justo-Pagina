@@ -135,6 +135,38 @@ async function extractWithSupabase(url) {
         const isShortUrl = url.includes('maps.app.goo.gl');
         console.log('¿Es URL corta?', isShortUrl);
         
+        // Primero intentamos resolver la URL corta
+        if (isShortUrl) {
+            console.log('🔄 Intentando resolver URL corta...');
+            const resolveResponse = await fetch(window.CONFIG.supabase.functionUrl, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${window.CONFIG.supabase.key}`
+                },
+                body: JSON.stringify({ 
+                    action: 'resolve_short_url',
+                    url: url
+                })
+            });
+
+            if (!resolveResponse.ok) {
+                throw new Error(`Error al resolver URL corta: ${resolveResponse.status}`);
+            }
+
+            const resolvedData = await resolveResponse.json();
+            console.log('✅ URL corta resuelta:', resolvedData);
+            
+            if (resolvedData.error) {
+                throw new Error(resolvedData.error);
+            }
+
+            // Usamos la URL resuelta para obtener los detalles
+            url = resolvedData.resolvedUrl;
+            console.log('🔄 Usando URL resuelta:', url);
+        }
+        
+        // Ahora obtenemos los detalles del lugar
         const response = await fetch(window.CONFIG.supabase.functionUrl, {
             method: 'POST',
             headers: {
@@ -144,7 +176,6 @@ async function extractWithSupabase(url) {
             body: JSON.stringify({ 
                 url: url,
                 action: 'get_place_details',
-                isShortUrl: isShortUrl,
                 fields: 'name,formatted_address,formatted_phone_number,website,rating,user_ratings_total,opening_hours,reviews,types,geometry,photos'
             })
         });
@@ -623,3 +654,4 @@ window.diagnoseGooglePlacesAPI = diagnoseGooglePlacesAPI;
 
 // Notificar que places.js está listo
 console.log('✅ places.js cargado y listo');
+
