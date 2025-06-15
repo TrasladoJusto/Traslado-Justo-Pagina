@@ -1,0 +1,439 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Generador profesional de sitios web personalizados. Crea tu sitio web sin programar y descárgalo en minutos.">
+  <title>WebCreator Pro | Tu sitio web profesional en minutos</title>
+  
+  <!-- Fuentes web optimizadas -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+  
+  <!-- Iconos de Font Awesome -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  
+  <!-- Enlace a hoja de estilos externa -->
+  <link rel="stylesheet" href="assets/css/styles.css">
+  
+  <!-- Favicon -->
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>⚡</text></svg>">
+</head>
+<body>
+  <div class="app-container">
+    <!-- Header principal -->
+    <header class="app-header">
+      <div class="header-content">
+      <div class="logo-container">
+        <div class="logo">⚡</div>
+        <h1>WebCreator Pro</h1>
+      </div>
+      <p class="tagline">Crea tu sitio web profesional en minutos, sin programar</p>
+      </div>
+    </header>
+
+    <main class="app-content">
+      <!-- Panel de navegación lateral -->
+      <nav class="sidebar">
+        <div class="sidebar-header">
+          <h3>Configuración</h3>
+        </div>
+        <ul class="nav-tabs">
+          <li class="nav-item active" data-tab="places">
+            <i class="fas fa-map-marker-alt"></i>
+            <span>Google Places</span>
+          </li>
+          <li class="nav-item" data-tab="template">
+            <i class="fas fa-layer-group"></i>
+            <span>Plantilla</span>
+          </li>
+          <li class="nav-item" data-tab="design">
+            <i class="fas fa-palette"></i>
+            <span>Diseño</span>
+          </li>
+          <li class="nav-item" data-tab="content">
+            <i class="fas fa-edit"></i>
+            <span>Contenido</span>
+          </li>
+          <li class="nav-item" data-tab="preview">
+            <i class="fas fa-eye"></i>
+            <span>Vista Previa</span>
+          </li>
+        </ul>
+        <div class="sidebar-footer">
+          <button id="generateSiteBtn" class="btn-primary btn-full">
+            <i class="fas fa-magic"></i> Generar Sitio
+          </button>
+          <button id="downloadZipBtn" class="btn-success btn-full">
+            <i class="fas fa-download"></i> Descargar ZIP
+          </button>
+        </div>
+      </nav>
+
+      <!-- Contenido principal -->
+      <div class="main-panel">
+        <!-- Sección de Google Places -->
+        <section id="places-section" class="content-section active">
+          <div class="section-header">
+            <h2><i class="fas fa-map-marker-alt"></i> Extraer datos de Google Places</h2>
+            <p>Pega una URL de Google Maps para extraer automáticamente la información de tu negocio</p>
+          </div>
+          
+          <div class="form-card">
+            <div class="form-group">
+              <label for="placeUrl">URL o Place ID de Google Maps:</label>
+              <input type="text" id="placeUrl" placeholder="https://maps.google.com/... o ChIJ..." required>
+              <small class="form-text">Pega la URL completa de Google Maps o el Place ID</small>
+            </div>
+            
+            <div class="form-actions">
+              <button type="button" id="extractBtn" class="btn btn-primary">
+                <i class="fas fa-search"></i> Extraer Datos
+              </button>
+              <button type="button" id="testApiBtn" class="btn btn-secondary">
+                <i class="fas fa-vial"></i> Probar API
+              </button>
+            </div>
+          </div>
+
+          <!-- Información extraída -->
+          <div id="extractedInfo" class="extracted-info hidden">
+            <h3>Información Extraída</h3>
+            <div class="info-grid">
+              <div class="info-card">
+                <i class="fas fa-building"></i>
+                <div class="info-content">
+                  <label>Nombre del Negocio</label>
+                  <span id="extractedName">-</span>
+                </div>
+              </div>
+              <div class="info-card">
+                <i class="fas fa-map-pin"></i>
+                <div class="info-content">
+                  <label>Dirección</label>
+                  <span id="extractedAddress">-</span>
+                </div>
+              </div>
+              <div class="info-card">
+                <i class="fas fa-phone"></i>
+                <div class="info-content">
+                  <label>Teléfono</label>
+                  <span id="extractedPhone">-</span>
+                </div>
+              </div>
+              <div class="info-card">
+                <i class="fas fa-star"></i>
+                <div class="info-content">
+                  <label>Calificación</label>
+                  <span id="extractedRating">-</span>
+                </div>
+              </div>
+              <div class="info-card">
+                <i class="fas fa-clock"></i>
+                <div class="info-content">
+                  <label>Horarios</label>
+                  <span id="extractedHours">-</span>
+                </div>
+              </div>
+              <div class="info-card">
+                <i class="fas fa-globe"></i>
+                <div class="info-content">
+                  <label>Sitio Web</label>
+                  <span id="extractedWebsite">-</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Sección de plantillas -->
+        <section id="template-section" class="content-section">
+          <div class="section-header">
+          <h2><i class="fas fa-layer-group"></i> Elige tu Plantilla</h2>
+            <p>Selecciona una plantilla profesional que se adapte a tu tipo de negocio</p>
+          </div>
+          
+          <div class="template-grid" id="templateGrid">
+            <!-- Las plantillas se generan dinámicamente -->
+          </div>
+        </section>
+
+        <!-- Sección de diseño -->
+        <section id="design-section" class="content-section">
+          <div class="section-header">
+          <h2><i class="fas fa-palette"></i> Personaliza el Diseño</h2>
+            <p>Elige colores que representen tu marca y personalidad</p>
+          </div>
+          
+          <div class="design-container">
+            <!-- Esquemas de color sugeridos -->
+            <div class="color-schemes">
+              <h3>Esquemas Sugeridos</h3>
+              <div class="scheme-grid" id="suggestedSchemes">
+                <!-- Los esquemas se generan dinámicamente -->
+              </div>
+            </div>
+
+            <!-- Selectores de color personalizados -->
+            <div class="custom-colors">
+              <h3>Colores Personalizados</h3>
+          <div class="color-pickers">
+                <div class="color-picker-group">
+              <div class="color-picker">
+                <label for="primaryColor">Color Primario</label>
+                    <div class="color-input-group">
+                      <input type="color" id="primaryColor" value="#3b82f6">
+                      <input type="text" id="primaryColorText" value="#3b82f6" maxlength="7">
+                    </div>
+              </div>
+              <div class="color-picker">
+                <label for="secondaryColor">Color Secundario</label>
+                    <div class="color-input-group">
+                      <input type="color" id="secondaryColor" value="#f59e0b">
+                      <input type="text" id="secondaryColorText" value="#f59e0b" maxlength="7">
+                    </div>
+                  </div>
+                </div>
+                <div class="color-picker-group">
+                  <div class="color-picker">
+                    <label for="accentColor">Color de Acento</label>
+                    <div class="color-input-group">
+                      <input type="color" id="accentColor" value="#10b981">
+                      <input type="text" id="accentColorText" value="#10b981" maxlength="7">
+                    </div>
+                  </div>
+                  <div class="color-picker">
+                    <label for="textColor">Color de Texto</label>
+                    <div class="color-input-group">
+                      <input type="color" id="textColor" value="#1f2937">
+                      <input type="text" id="textColorText" value="#1f2937" maxlength="7">
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Vista previa de colores -->
+            <div class="color-preview">
+              <h3>Vista Previa</h3>
+              <div class="preview-elements">
+                <div class="preview-header" id="colorPreviewHeader">
+                  <div class="preview-logo">Logo</div>
+                  <nav class="preview-nav">
+                    <a href="#" class="preview-nav-link">Inicio</a>
+                    <a href="#" class="preview-nav-link">Servicios</a>
+                    <a href="#" class="preview-nav-link">Contacto</a>
+                  </nav>
+                </div>
+                <div class="preview-button" id="colorPreviewButton">
+                  Botón de Acción
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Sección de contenido -->
+        <section id="content-section" class="content-section">
+          <div class="section-header">
+            <h2><i class="fas fa-edit"></i> Editar Contenido</h2>
+            <p>Personaliza la información de tu sitio web</p>
+          </div>
+          
+          <div class="content-tabs">
+            <div class="tab-buttons">
+              <button class="tab-btn active" data-tab="basic">Básico</button>
+              <button class="tab-btn" data-tab="contact">Contacto</button>
+              <button class="tab-btn" data-tab="social">Redes Sociales</button>
+              <button class="tab-btn" data-tab="advanced">Avanzado</button>
+            </div>
+
+            <!-- Tab Básico -->
+            <div class="tab-content active" data-tab="basic">
+          <div class="form-card">
+            <div class="form-group">
+              <label for="businessName">Nombre del Negocio</label>
+                  <input type="text" id="businessName" placeholder="Nombre de tu negocio">
+            </div>
+            <div class="form-group">
+              <label for="businessType">Tipo de Negocio</label>
+              <select id="businessType">
+                <option value="">Selecciona un tipo...</option>
+                <option value="restaurant">Restaurante</option>
+                <option value="cafe">Café</option>
+                <option value="hotel">Hotel</option>
+                <option value="store">Tienda</option>
+                    <option value="gym">Gimnasio</option>
+                    <option value="clinic">Clínica</option>
+                    <option value="event">Eventos</option>
+                    <option value="service">Servicios</option>
+              </select>
+            </div>
+            <div class="form-group">
+                  <label for="businessDescription">Descripción</label>
+                  <textarea id="businessDescription" rows="4" placeholder="Describe tu negocio de forma atractiva..."></textarea>
+                  <div class="character-counter">
+                    <span id="descriptionCounter">0</span>/300
+            </div>
+          </div>
+                <div class="form-group">
+                  <label for="businessSlogan">Slogan o Tagline</label>
+                  <input type="text" id="businessSlogan" placeholder="Tu slogan o frase distintiva">
+                </div>
+              </div>
+            </div>
+            
+            <!-- Tab Contacto -->
+            <div class="tab-content" data-tab="contact">
+              <div class="form-card">
+                <div class="form-group">
+                  <label for="businessAddress">Dirección</label>
+                  <textarea id="businessAddress" rows="3" placeholder="Dirección completa de tu negocio"></textarea>
+                </div>
+                <div class="form-group">
+                  <label for="businessPhone">Teléfono</label>
+                  <input type="tel" id="businessPhone" placeholder="+51 987 654 321">
+                </div>
+                <div class="form-group">
+                  <label for="businessEmail">Email</label>
+                  <input type="email" id="businessEmail" placeholder="contacto@tunegocio.com">
+                </div>
+                <div class="form-group">
+                  <label for="businessWhatsapp">WhatsApp</label>
+                  <input type="tel" id="businessWhatsapp" placeholder="+51 987 654 321">
+                </div>
+                <div class="form-group">
+                  <label for="businessWebsite">Sitio Web</label>
+                  <input type="url" id="businessWebsite" placeholder="https://www.tunegocio.com">
+                </div>
+              </div>
+            </div>
+
+            <!-- Tab Redes Sociales -->
+            <div class="tab-content" data-tab="social">
+              <div class="form-card">
+                <div class="social-grid">
+                  <div class="form-group">
+                    <label for="socialInstagram">
+                      <i class="fab fa-instagram"></i> Instagram
+                    </label>
+                    <input type="text" id="socialInstagram" placeholder="@usuario">
+                  </div>
+                  <div class="form-group">
+                    <label for="socialFacebook">
+                      <i class="fab fa-facebook"></i> Facebook
+                    </label>
+                    <input type="text" id="socialFacebook" placeholder="usuario o página">
+                  </div>
+                  <div class="form-group">
+                    <label for="socialTwitter">
+                      <i class="fab fa-twitter"></i> Twitter
+                    </label>
+                    <input type="text" id="socialTwitter" placeholder="@usuario">
+                  </div>
+            <div class="form-group">
+                    <label for="socialLinkedin">
+                      <i class="fab fa-linkedin"></i> LinkedIn
+                    </label>
+                    <input type="text" id="socialLinkedin" placeholder="usuario o empresa">
+            </div>
+            <div class="form-group">
+                    <label for="socialYoutube">
+                      <i class="fab fa-youtube"></i> YouTube
+                    </label>
+                    <input type="text" id="socialYoutube" placeholder="canal o usuario">
+            </div>
+            <div class="form-group">
+                    <label for="socialTiktok">
+                      <i class="fab fa-tiktok"></i> TikTok
+                    </label>
+                    <input type="text" id="socialTiktok" placeholder="@usuario">
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Tab Avanzado -->
+            <div class="tab-content" data-tab="advanced">
+              <div class="form-card">
+                <div class="form-group">
+                  <label for="openingHours">Horarios de Atención</label>
+                  <div class="hours-editor" id="hoursEditor">
+                    <!-- Los horarios se generan dinámicamente -->
+                  </div>
+                </div>
+                <div class="form-group">
+                  <label for="businessFeatures">Características del Negocio</label>
+                  <div class="features-grid" id="featuresGrid">
+                    <!-- Las características se generan dinámicamente -->
+                  </div>
+                </div>
+                <div class="form-group">
+                  <label for="customCSS">CSS Personalizado</label>
+                  <textarea id="customCSS" rows="6" placeholder="/* Agrega estilos CSS personalizados aquí */"></textarea>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Sección de vista previa -->
+        <section id="preview-section" class="content-section">
+          <div class="section-header">
+            <h2><i class="fas fa-eye"></i> Vista Previa</h2>
+            <p>Visualiza tu sitio web antes de descargarlo</p>
+          </div>
+          
+          <div class="preview-container">
+            <div class="preview-controls">
+              <div class="device-selector">
+                <button class="device-btn active" data-device="desktop">
+                  <i class="fas fa-desktop"></i> Desktop
+                </button>
+                <button class="device-btn" data-device="tablet">
+                  <i class="fas fa-tablet-alt"></i> Tablet
+                </button>
+                <button class="device-btn" data-device="mobile">
+                  <i class="fas fa-mobile-alt"></i> Mobile
+                </button>
+              </div>
+              <button id="refreshPreviewBtn" class="btn-secondary">
+                <i class="fas fa-sync-alt"></i> Actualizar
+              </button>
+            </div>
+            
+            <div class="preview-frame-container">
+              <div class="preview-frame" id="previewFrame">
+                <div class="preview-placeholder">
+                  <i class="fas fa-eye"></i>
+                  <p>Haz clic en "Generar Sitio" para ver la vista previa</p>
+                </div>
+            </div>
+            </div>
+          </div>
+        </section>
+      </div>
+    </main>
+
+    <!-- Notificaciones -->
+    <div id="notificationContainer" class="notification-container"></div>
+
+    <!-- Loading overlay -->
+    <div id="loadingOverlay" class="loading-overlay hidden">
+      <div class="loading-spinner">
+        <i class="fas fa-spinner fa-spin"></i>
+        <p>Procesando...</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Scripts -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+  <script src="assets/js/config.js"></script>
+  <script src="assets/js/script.js"></script>
+  <script src="assets/js/places.js"></script>
+  <script src="assets/js/generate.js"></script>
+</body>
+</html>
+
