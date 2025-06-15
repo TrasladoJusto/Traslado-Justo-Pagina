@@ -147,20 +147,56 @@ const availableFeatures = [
   { id: 'faq', name: 'Preguntas frecuentes', icon: 'fas fa-question-circle' }
 ];
 
-/**
- * Inicialización de la aplicación
- */
-document.addEventListener('DOMContentLoaded', function() {
-  console.log('Inicializando aplicación...');
-  
-  // Optimización: Cargar componentes críticos primero
-  initializeCriticalComponents();
-  
-  // Cargar componentes no críticos de forma asíncrona
-  setTimeout(() => {
-    initializeNonCriticalComponents();
-  }, 100);
-});
+// Esperar a que todos los componentes necesarios estén disponibles
+async function waitForComponents() {
+    return new Promise((resolve) => {
+        const checkComponents = setInterval(() => {
+            if (window.CONFIG && 
+                typeof window.extractDataFromGoogleMapsLink === 'function' &&
+                typeof window.extractWithGoogleMaps === 'function') {
+                clearInterval(checkComponents);
+                resolve();
+            }
+        }, 100);
+    });
+}
+
+// Inicializar la aplicación
+async function initializeApp() {
+    try {
+        // Esperar a que todos los componentes estén disponibles
+        await waitForComponents();
+        
+        console.log('✅ Todos los componentes cargados correctamente');
+        
+        // Inicializar componentes críticos
+        initializeCriticalComponents();
+        
+        // Inicializar componentes no críticos
+        initializeNonCriticalComponents();
+        
+        // Configurar navegación
+        setupNavigation();
+        
+        // Configurar plantillas
+        setupTemplates();
+        
+        // Configurar manejadores de formularios
+        setupFormHandlers();
+        
+        // Configurar esquemas de colores
+        setupColorSchemes();
+        
+        console.log('🚀 Aplicación inicializada correctamente');
+        
+    } catch (error) {
+        console.error('❌ Error inicializando la aplicación:', error);
+        showNotification('error', 'Error de Inicialización', 'No se pudo inicializar la aplicación correctamente. Por favor, recarga la página.');
+    }
+}
+
+// Iniciar la aplicación cuando el DOM esté listo
+document.addEventListener('DOMContentLoaded', initializeApp);
 
 function initializeCriticalComponents() {
   setupNavigation();
@@ -172,9 +208,6 @@ function initializeCriticalComponents() {
 
 function initializeNonCriticalComponents() {
   console.log('Inicializando componentes no críticos...');
-  
-  // Configurar esquemas de color
-  setupColorSchemes();
   
   // Cargar plantillas de forma asíncrona
   loadTemplatesAsync();
