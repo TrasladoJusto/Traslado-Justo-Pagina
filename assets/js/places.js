@@ -7,7 +7,7 @@
 async function extractDataFromGoogleMapsLink(url) {
     try {
         // Intentar primero con Supabase si está configurado
-        if (CONFIG.app.useSupabase && CONFIG.supabase.url && CONFIG.supabase.key) {
+        if (window.CONFIG.app.useSupabase && window.CONFIG.supabase.url && window.CONFIG.supabase.key) {
             try {
                 const data = await extractWithSupabase(url);
                 if (data) {
@@ -16,15 +16,15 @@ async function extractDataFromGoogleMapsLink(url) {
                 }
             } catch (supabaseError) {
                 console.warn('⚠️ Error con Supabase:', supabaseError);
-                if (!CONFIG.app.fallbackToGoogle) {
+                if (!window.CONFIG.app.fallbackToGoogle) {
                     throw new Error('Error con Supabase y fallback deshabilitado');
                 }
             }
         }
 
         // Si Supabase falla o no está configurado, usar Google Maps
-        if (CONFIG.app.fallbackToGoogle) {
-            if (!CONFIG.googleMaps.apiKey) {
+        if (window.CONFIG.app.fallbackToGoogle) {
+            if (!window.CONFIG.googleMaps.apiKey) {
                 throw new Error('Se requiere API Key válida de Google Places. Configúrala en config.js');
             }
             return await extractWithGoogleMaps(url);
@@ -40,11 +40,11 @@ async function extractDataFromGoogleMapsLink(url) {
 // Extracción usando Supabase
 async function extractWithSupabase(url) {
     try {
-        const response = await fetch(CONFIG.supabase.functionUrl, {
+        const response = await fetch(window.CONFIG.supabase.functionUrl, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-                'Authorization': `Bearer ${CONFIG.supabase.key}`
+                'Authorization': `Bearer ${window.CONFIG.supabase.key}`
             },
             body: JSON.stringify({ url })
         });
@@ -83,7 +83,7 @@ async function extractWithGoogleMaps(url) {
             document.head.removeChild(script);
         };
 
-        script.src = `https://maps.googleapis.com/maps/api/place/details/json?place_id=${placeId}&fields=name,formatted_address,formatted_phone_number,website,rating,reviews,photos,opening_hours,types&key=${CONFIG.googleMaps.apiKey}&callback=${callbackName}`;
+        script.src = `https://maps.googleapis.com/maps/api/place/details/json?place_id=${placeId}&fields=name,formatted_address,formatted_phone_number,website,rating,reviews,photos,opening_hours,types&key=${window.CONFIG.googleMaps.apiKey}&callback=${callbackName}`;
         script.async = true;
         script.onerror = () => {
             reject(new Error('Error al cargar script de Google Places API'));
