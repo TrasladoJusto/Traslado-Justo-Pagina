@@ -502,3 +502,58 @@ async function diagnoseGooglePlacesAPI() {
   });
   
   // Probar con Place ID de ejemplo
+  if (apiKey && apiKey !== 'TU_API_KEY_AQUI') {
+    console.log('🧪 Probando con Place ID de ejemplo...');
+    const testPlaceId = 'ChIJN1t_tDeuEmsRUsoyG83frY4'; // Sydney Opera House
+    
+    try {
+      console.log('📡 Haciendo llamada de prueba...');
+      const result = await getPlaceDetails(testPlaceId, apiKey);
+      console.log('✅ Llamada exitosa:', result.name);
+      console.log('✅ API funcionando correctamente');
+    } catch (error) {
+      console.error('❌ Error en llamada de prueba:', error.message);
+      
+      if (error.message.includes('REQUEST_DENIED')) {
+        console.error('💡 Posibles causas:');
+        console.error('- API Key no tiene permisos para Places API');
+        console.error('- Restricciones de dominio no configuradas');
+        console.error('- APIs no habilitadas en Google Cloud Console');
+      } else if (error.message.includes('OVER_QUERY_LIMIT')) {
+        console.error('💡 Posibles causas:');
+        console.error('- Cuota de API excedida');
+        console.error('- Demasiadas llamadas en poco tiempo');
+      } else if (error.message.includes('INVALID_REQUEST')) {
+        console.error('💡 Posibles causas:');
+        console.error('- Place ID inválido');
+        console.error('- Parámetros incorrectos');
+      }
+    }
+  }
+  
+  console.log('====================================');
+  console.log('🔍 DIAGNÓSTICO COMPLETADO');
+}
+
+// Hacer las funciones disponibles globalmente
+window.extractDataFromGoogleMapsLink = extractDataFromGoogleMapsLink;
+window.extractWithGoogleMaps = extractWithGoogleMaps;
+window.extractWithSupabase = extractWithSupabase;
+window.extractPlaceId = extractPlaceId;
+window.formatPlaceData = formatPlaceData;
+window.getPlaceDetails = getPlaceDetails;
+window.getPlacePhotos = getPlacePhotos;
+window.formatPlaceDataForWebsite = formatPlaceDataForWebsite;
+window.determineBusinessType = determineBusinessType;
+window.extractLogoText = extractLogoText;
+window.generateDescription = generateDescription;
+window.generateSpecialFeature = generateSpecialFeature;
+window.extractEmailFromWebsite = extractEmailFromWebsite;
+window.extractFromGoogleMaps = extractFromGoogleMaps;
+window.fillFormWithExtractedData = fillFormWithExtractedData;
+window.showExtractedInfo = showExtractedInfo;
+window.showStatus = showStatus;
+window.diagnoseGooglePlacesAPI = diagnoseGooglePlacesAPI;
+
+// Notificar que places.js está listo
+console.log('✅ places.js cargado y listo');
