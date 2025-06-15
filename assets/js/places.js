@@ -41,12 +41,8 @@ function extractPlaceId(url) {
     // 2. Manejo especial para URLs cortas de maps.app.goo.gl
     if (url.includes('maps.app.goo.gl')) {
         console.log('🔍 Detectada URL corta de Google Maps');
-        // Para URLs cortas, usamos el ID completo como Place ID
-        const shortId = url.split('/').pop();
-        if (shortId && shortId.length >= 20) {
-            console.log('✅ ID de URL corta encontrado:', shortId);
-            return shortId;
-        }
+        // Para URLs cortas, necesitamos usar Supabase para resolverlas
+        return url; // Devolvemos la URL completa para que Supabase la procese
     }
 
     // 3. Patrones para URLs de Google Maps
@@ -136,6 +132,9 @@ async function extractWithSupabase(url) {
         console.log('🌐 Enviando solicitud a Supabase...');
         console.log('URL a procesar:', url);
         
+        const isShortUrl = url.includes('maps.app.goo.gl');
+        console.log('¿Es URL corta?', isShortUrl);
+        
         const response = await fetch(window.CONFIG.supabase.functionUrl, {
             method: 'POST',
             headers: {
@@ -145,7 +144,8 @@ async function extractWithSupabase(url) {
             body: JSON.stringify({ 
                 url: url,
                 action: 'get_place_details',
-                isShortUrl: url.includes('maps.app.goo.gl')
+                isShortUrl: isShortUrl,
+                fields: 'name,formatted_address,formatted_phone_number,website,rating,user_ratings_total,opening_hours,reviews,types,geometry,photos'
             })
         });
 
@@ -157,6 +157,11 @@ async function extractWithSupabase(url) {
 
         const data = await response.json();
         console.log('✅ Respuesta de Supabase recibida:', data);
+        
+        if (data.error) {
+            throw new Error(data.error);
+        }
+        
         return formatPlaceData(data);
     } catch (error) {
         console.error('❌ Error en Supabase:', error);
@@ -169,6 +174,12 @@ async function extractWithGoogleMaps(url) {
     const placeId = extractPlaceId(url);
     if (!placeId) {
         throw new Error('URL de Google Maps inválida');
+    }
+
+    // Si es una URL corta, debemos usar Supabase
+    if (url.includes('maps.app.goo.gl')) {
+        console.log('🔄 Redirigiendo URL corta a Supabase...');
+        return extractWithSupabase(url);
     }
 
     return new Promise((resolve, reject) => {
