@@ -1189,61 +1189,41 @@ window.testPreview = function() {
  * Maneja la prueba de la API de Google Places
  */
 async function handleTestAPI() {
-  console.log('🧪 Iniciando prueba de API...');
-  
+  console.log('=== INICIANDO PRUEBA DE API ===');
+  showNotification('info', 'Probando API', 'Realizando prueba de conexión a Google Maps API...');
+
+  // Usar una Place ID conocida para la prueba (Ópera de Sídney)
+  const testPlaceId = 'ChIJN1t_tDeuEmsRUsoyG83frY4'; 
+
   try {
-    showLoading(true);
-    
-    // Verificar configuración
-    if (!window.GOOGLE_MAPS_CONFIG?.apiKey) {
-      showNotification('error', 'Error', 'No hay API Key configurada');
-      return;
+    if (!window.CONFIG.googleMaps.apiKey || window.CONFIG.googleMaps.apiKey === 'TU_API_KEY_AQUI') {
+      throw new Error('API Key de Google Maps no configurada. Por favor, revisa config.js');
     }
-    
-    console.log('🔑 API Key configurada:', window.GOOGLE_MAPS_CONFIG.apiKey.substring(0, 20) + '...');
-    
-    // Ejecutar diagnóstico específico de Google Places API
-    if (typeof window.diagnoseGooglePlacesAPI === 'function') {
-      await window.diagnoseGooglePlacesAPI();
-      showNotification('success', 'Prueba completada', 'Revisa la consola para ver los resultados detallados');
-    } else {
-      // Fallback a diagnóstico básico
-      console.log('🔍 Ejecutando diagnóstico básico...');
-      
-      // Verificar elementos críticos
-      const criticalElements = [
-        'placeUrl',
-        'extractBtn',
-        'extractedInfo'
-      ];
-      
-      console.log('📋 Verificando elementos críticos:');
-      criticalElements.forEach(id => {
-        const element = document.getElementById(id);
-        console.log(`${element ? '✅' : '❌'} ${id}: ${element ? 'Encontrado' : 'NO ENCONTRADO'}`);
-      });
-      
-      // Verificar funciones críticas
-      const criticalFunctions = [
-        'extractDataFromGoogleMapsLink',
-        'extractFromGoogleMaps',
-        'fillFormWithExtractedData'
-      ];
-      
-      console.log('🔧 Verificando funciones críticas:');
-      criticalFunctions.forEach(funcName => {
-        const func = window[funcName];
-        console.log(`${func ? '✅' : '❌'} ${funcName}: ${func ? 'Disponible' : 'NO DISPONIBLE'}`);
-      });
-      
-      showNotification('warning', 'Diagnóstico básico', 'Función de diagnóstico avanzado no disponible');
+
+    if (typeof window.extractWithGoogleMaps !== 'function') {
+      throw new Error('Función extractWithGoogleMaps no disponible. Asegúrate de que places.js esté cargado.');
     }
+
+    const testData = await window.extractWithGoogleMaps(testPlaceId);
+    console.log('✅ Prueba de API exitosa:', testData);
+    showNotification('success', 'Prueba de API Exitosa', 'Conexión a Google Maps API establecida. Datos de prueba obtenidos.');
     
+    // Opcional: mostrar un resumen de los datos de prueba en el campo de texto
+    document.getElementById('placeUrl').value = `Prueba exitosa para: ${testData.name || 'Lugar de Prueba'}`; 
+
   } catch (error) {
-    console.error('Error en prueba de API:', error);
-    showNotification('error', 'Error', 'Error al probar la API: ' + error.message);
-  } finally {
-    showLoading(false);
+    console.error('❌ Error en llamada de prueba:', error);
+    let errorMessage = error.message || 'Error desconocido';
+
+    if (errorMessage.includes('API Key no configurada')) {
+      errorMessage = 'API Key de Google Maps no configurada correctamente en config.js o en Google Cloud Console.';
+    } else if (errorMessage.includes('REQUEST_DENIED')) {
+      errorMessage = 'API Key de Google Maps denegada. Revisa restricciones de dominio o APIs habilitadas en Google Cloud Console.';
+    } else if (errorMessage.includes('OVER_QUERY_LIMIT')) {
+      errorMessage = 'Cuota de Google Maps API excedida.';
+    }
+
+    showNotification('error', 'Error en Prueba de API', errorMessage);
   }
 }
 
