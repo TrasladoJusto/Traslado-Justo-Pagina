@@ -65,7 +65,4 @@ function verifyConfig() {
 window.CONFIG = CONFIG;
 
 // Verificar al cargar
-document.addEventListener('DOMContentLoaded', verifyConfig);
-
-// Exportar configuración
-export default CONFIG; 
+document.addEventListener('DOMContentLoaded', verifyConfig); 
