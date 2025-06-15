@@ -21,14 +21,25 @@ function waitForConfig() {
 
 // Función principal para extraer datos
 async function extractDataFromGoogleMapsLink(url) {
+    console.log('Iniciando extracción de datos...');
+    
+    // Validar URL
+    if (!url) {
+        throw new Error('URL no proporcionada');
+    }
+    
+    // Validar configuración
+    if (!window.CONFIG) {
+        console.error('❌ CONFIG no está disponible');
+        throw new Error('Configuración no disponible');
+    }
+    
+    console.log('✅ Configuración validada');
+    
     try {
-        // Validar que CONFIG esté disponible
-        if (!window.CONFIG) {
-            throw new Error('Configuración no disponible');
-        }
-
         // Intentar primero con Supabase si está configurado
         if (window.CONFIG.app.useSupabase && window.CONFIG.supabase.url && window.CONFIG.supabase.key) {
+            console.log('Intentando extracción con Supabase...');
             try {
                 const data = await extractWithSupabase(url);
                 if (data) {
@@ -45,6 +56,7 @@ async function extractDataFromGoogleMapsLink(url) {
 
         // Si Supabase falla o no está configurado, usar Google Maps
         if (window.CONFIG.app.fallbackToGoogle) {
+            console.log('Intentando extracción con Google Maps...');
             if (!window.CONFIG.googleMaps.apiKey) {
                 throw new Error('Se requiere API Key válida de Google Places. Configúrala en config.js');
             }
