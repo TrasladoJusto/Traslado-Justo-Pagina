@@ -46,7 +46,7 @@ async function extractWithSupabase(url) {
                 'Content-Type': 'application/json',
                 'Authorization': `Bearer ${window.CONFIG.supabase.key}`
             },
-            body: JSON.stringify({ url })
+            body: JSON.stringify({ url: url, action: 'get_place_details' })
         });
 
         if (!response.ok) {
