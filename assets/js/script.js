@@ -1274,4 +1274,9 @@ async function handleTestAPI() {
     // showLoading(false);
   }
 }
+
+console.log('🔧 Funciones de diagnóstico disponibles:');
+console.log('- diagnoseApp(): Diagnóstico completo de la aplicación');
+console.log('- testExtraction(url): Probar extracción de datos');
+console.log('- testPreview(): Probar vista previa'); 
  
