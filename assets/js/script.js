@@ -1196,15 +1196,19 @@ async function handleTestAPI() {
   const testPlaceId = 'ChIJN1t_tDeuEmsRUsoyG83frY4'; 
 
   try {
-    if (!window.CONFIG.googleMaps.apiKey || window.CONFIG.googleMaps.apiKey === 'TU_API_KEY_AQUI') {
+    // Validar que la API Key esté configurada en CONFIG
+    if (!window.CONFIG || !window.CONFIG.googleMaps || !window.CONFIG.googleMaps.apiKey || window.CONFIG.googleMaps.apiKey === 'TU_API_KEY_AQUI') {
       throw new Error('API Key de Google Maps no configurada. Por favor, revisa config.js');
     }
 
+    // Validar que la función de extracción de Google Maps esté disponible
     if (typeof window.extractWithGoogleMaps !== 'function') {
       throw new Error('Función extractWithGoogleMaps no disponible. Asegúrate de que places.js esté cargado.');
     }
 
+    // Realizar la prueba de extracción
     const testData = await window.extractWithGoogleMaps(testPlaceId);
+    
     console.log('✅ Prueba de API exitosa:', testData);
     showNotification('success', 'Prueba de API Exitosa', 'Conexión a Google Maps API establecida. Datos de prueba obtenidos.');
     
@@ -1215,15 +1219,22 @@ async function handleTestAPI() {
     console.error('❌ Error en llamada de prueba:', error);
     let errorMessage = error.message || 'Error desconocido';
 
+    // Mensajes de error más amigables
     if (errorMessage.includes('API Key no configurada')) {
       errorMessage = 'API Key de Google Maps no configurada correctamente en config.js o en Google Cloud Console.';
     } else if (errorMessage.includes('REQUEST_DENIED')) {
-      errorMessage = 'API Key de Google Maps denegada. Revisa restricciones de dominio o APIs habilitadas en Google Cloud Console.';
+      errorMessage = 'API Key de Google Maps denegada. Revisa restricciones de dominio, APIs habilitadas o facturación en Google Cloud Console.';
     } else if (errorMessage.includes('OVER_QUERY_LIMIT')) {
-      errorMessage = 'Cuota de Google Maps API excedida.';
+      errorMessage = 'Cuota de Google Maps API excedida. Por favor, espera o revisa tu uso en Google Cloud Console.';
+    } else if (errorMessage.includes('Error al cargar script')) {
+      errorMessage = 'No se pudo cargar el script de Google Places API. Verifica tu conexión a internet o el estado del servicio.';
     }
 
     showNotification('error', 'Error en Prueba de API', errorMessage);
+
+  } finally {
+    // Cualquier acción final, si es necesaria
+    // showLoading(false);
   }
 }
 
