@@ -16,7 +16,8 @@ const appState = {
     design: {},
     advanced: {}
   },
-  templatesLoaded: false
+  templatesLoaded: false,
+  colorScheme: null
 };
 
 // Configuración de plantillas
@@ -162,56 +163,59 @@ async function waitForComponents() {
 }
 
 // Inicializar la aplicación
-async function initializeApp() {
-    try {
-        // Esperar a que todos los componentes estén disponibles
-        await waitForComponents();
-        
-        console.log('✅ Todos los componentes cargados correctamente');
-        
-        // Inicializar componentes críticos
-        initializeCriticalComponents();
-        
-        // Inicializar componentes no críticos
-        initializeNonCriticalComponents();
-        
-        // Configurar navegación
-        setupNavigation();
-        
-        // Configurar plantillas
-        setupTemplates();
-        
-        // Configurar manejadores de formularios
-        setupFormHandlers();
-        
-        // Configurar esquemas de colores
-        setupColorSchemes();
-        
-        console.log('🚀 Aplicación inicializada correctamente');
-        
-    } catch (error) {
-        console.error('❌ Error inicializando la aplicación:', error);
-        showNotification('error', 'Error de Inicialización', 'No se pudo inicializar la aplicación correctamente. Por favor, recarga la página.');
+function initializeApp() {
+    console.log('🚀 Iniciando aplicación...');
+    
+    // Inicializar componentes críticos
+    initializeCriticalComponents();
+    
+    // Configurar navegación
+    setupNavigation();
+    
+    // Configurar plantillas
+    setupTemplates();
+    
+    // Configurar manejadores de formularios
+    setupFormHandlers();
+    
+    // Configurar esquemas de colores
+    setupColorSchemes();
+    
+    console.log('✅ Aplicación inicializada');
+}
+
+// Inicializar componentes críticos
+function initializeCriticalComponents() {
+    console.log('Inicializando componentes críticos...');
+    
+    // Configurar botones principales
+    const extractBtn = document.getElementById('extractBtn');
+    const testApiBtn = document.getElementById('testApiBtn');
+    const generateSiteBtn = document.getElementById('generateSiteBtn');
+    const downloadZipBtn = document.getElementById('downloadZipBtn');
+    
+    if (extractBtn) {
+        extractBtn.addEventListener('click', handleExtractPlaceData);
+    }
+    
+    if (testApiBtn) {
+        testApiBtn.addEventListener('click', handleTestAPI);
+    }
+    
+    if (generateSiteBtn) {
+        generateSiteBtn.addEventListener('click', handleGenerateSite);
+    }
+    
+    if (downloadZipBtn) {
+        downloadZipBtn.addEventListener('click', handleDownloadZip);
     }
 }
 
-// Iniciar la aplicación cuando el DOM esté listo
-document.addEventListener('DOMContentLoaded', initializeApp);
-
-function initializeCriticalComponents() {
-  setupNavigation();
-  setupTemplates();
-  setupFormHandlers();
-  showTab('places');
-  console.log('Componentes críticos inicializados');
-}
-
-function initializeNonCriticalComponents() {
-  console.log('Inicializando componentes no críticos...');
-  
-  // Cargar plantillas de forma asíncrona
-  loadTemplatesAsync();
-}
+// Inicializar cuando el DOM esté listo
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('DOM cargado, iniciando aplicación...');
+    initializeApp();
+});
 
 /**
  * Configuración de la navegación optimizada
@@ -1270,8 +1274,4 @@ async function handleTestAPI() {
     // showLoading(false);
   }
 }
-
-console.log('🔧 Funciones de diagnóstico disponibles:');
-console.log('- diagnoseApp(): Diagnóstico completo de la aplicación');
-console.log('- testExtraction(url): Probar extracción de datos');
-console.log('- testPreview(): Probar vista previa'); 
+ 
