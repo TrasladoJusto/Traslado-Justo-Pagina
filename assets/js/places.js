@@ -3,11 +3,30 @@
  * Implementación básica según las instrucciones de Google Maps API
  */
 
+// Esperar a que CONFIG esté disponible
+function waitForConfig() {
+    return new Promise((resolve) => {
+        if (window.CONFIG) {
+            resolve(window.CONFIG);
+        } else {
+            const checkConfig = setInterval(() => {
+                if (window.CONFIG) {
+                    clearInterval(checkConfig);
+                    resolve(window.CONFIG);
+                }
+            }, 100);
+        }
+    });
+}
+
 // Función principal para extraer datos
 async function extractDataFromGoogleMapsLink(url) {
     try {
+        // Esperar a que CONFIG esté disponible
+        const config = await waitForConfig();
+        
         // Intentar primero con Supabase si está configurado
-        if (window.CONFIG.app.useSupabase && window.CONFIG.supabase.url && window.CONFIG.supabase.key) {
+        if (config.app.useSupabase && config.supabase.url && config.supabase.key) {
             try {
                 const data = await extractWithSupabase(url);
                 if (data) {
@@ -16,15 +35,15 @@ async function extractDataFromGoogleMapsLink(url) {
                 }
             } catch (supabaseError) {
                 console.warn('⚠️ Error con Supabase:', supabaseError);
-                if (!window.CONFIG.app.fallbackToGoogle) {
+                if (!config.app.fallbackToGoogle) {
                     throw new Error('Error con Supabase y fallback deshabilitado');
                 }
             }
         }
 
         // Si Supabase falla o no está configurado, usar Google Maps
-        if (window.CONFIG.app.fallbackToGoogle) {
-            if (!window.CONFIG.googleMaps.apiKey) {
+        if (config.app.fallbackToGoogle) {
+            if (!config.googleMaps.apiKey) {
                 throw new Error('Se requiere API Key válida de Google Places. Configúrala en config.js');
             }
             return await extractWithGoogleMaps(url);
@@ -95,16 +114,41 @@ async function extractWithGoogleMaps(url) {
 
 // Función auxiliar para extraer Place ID
 function extractPlaceId(url) {
+    // 1. Si ya es un Place ID directo (empieza con ChIJ o 0x...)
+    if (url.startsWith('ChIJ') || url.startsWith('0x')) {
+        return url;
+    }
+
+    // 2. Patrones para URLs de Google Maps completas
     const patterns = [
-        /place_id=([^&]+)/,
-        /cid=(\d+)/,
-        /maps\/place\/[^\/]+\/([^\/]+)/
+        /place_id=([^&]+)/, // Captura Place ID de `place_id=XYZ`
+        /cid=(\d+)/,        // Captura CID de `cid=123` (formato antiguo)
+        /data=!4m[^!]+!1s(0x[0-9a-fA-F:]+)/, // Captura IDs como `0x...` dentro de la sección `data=!4m...`
+        /maps\/place\/[^/]+\/([^/?]+)/ // Captura el último segmento en `maps/place/Nombre/+ID`
     ];
 
     for (const pattern of patterns) {
         const match = url.match(pattern);
-        if (match) return match[1];
+        if (match && match[1]) {
+            return decodeURIComponent(match[1]);
+        }
     }
+
+    // 3. Manejo de URLs cortas de maps.app.goo.gl (con limitaciones en frontend)
+    // Estas URLs son redirecciones. El navegador no puede resolverlas por sí mismo
+    // para extraer el Place ID sin un backend que siga el redirect y analice la URL final.
+    // Tu función de Supabase es el lugar donde esto debe ser manejado robustamente.
+    if (url.includes('maps.app.goo.gl')) {
+        console.warn('⚠️ extractPlaceId: No se pudo extraer Place ID de URL corta (maps.app.goo.gl) en el frontend. Esto requiere un backend para resolver la redirección.');
+        // Intentamos una heurística simple, aunque no es 100% fiable para Place IDs desde URLs cortas.
+        const lastSegment = url.split('/').pop();
+        if (lastSegment && lastSegment.length > 20) { // Place IDs suelen ser largos
+            return lastSegment; // Podría ser un Place ID, pero no es seguro
+        }
+    }
+
+    // Si no se encuentra ningún Place ID, devuelve null
+    console.warn(`❌ extractPlaceId: No se pudo extraer un Place ID válido de la URL: "${url}"`);
     return null;
 }
 
@@ -457,48 +501,4 @@ async function diagnoseGooglePlacesAPI() {
   
   // Probar con Place ID de ejemplo
   if (apiKey && apiKey !== 'TU_API_KEY_AQUI') {
-    console.log('🧪 Probando con Place ID de ejemplo...');
-    const testPlaceId = 'ChIJN1t_tDeuEmsRUsoyG83frY4'; // Sydney Opera House
-    
-    try {
-      console.log('📡 Haciendo llamada de prueba...');
-      const result = await getPlaceDetails(testPlaceId, apiKey);
-      console.log('✅ Llamada exitosa:', result.name);
-      console.log('✅ API funcionando correctamente');
-    } catch (error) {
-      console.error('❌ Error en llamada de prueba:', error.message);
-      
-      if (error.message.includes('REQUEST_DENIED')) {
-        console.error('💡 Posibles causas:');
-        console.error('- API Key no tiene permisos para Places API');
-        console.error('- Restricciones de dominio no configuradas');
-        console.error('- APIs no habilitadas en Google Cloud Console');
-      } else if (error.message.includes('OVER_QUERY_LIMIT')) {
-        console.error('💡 Posibles causas:');
-        console.error('- Cuota de API excedida');
-        console.error('- Demasiadas llamadas en poco tiempo');
-      } else if (error.message.includes('INVALID_REQUEST')) {
-        console.error('💡 Posibles causas:');
-        console.error('- Place ID inválido');
-        console.error('- Parámetros incorrectos');
-      }
-    }
-  }
-  
-  console.log('====================================');
-  console.log('🔍 DIAGNÓSTICO COMPLETADO');
-}
-
-// Exportar funciones para uso global
-window.extractDataFromGoogleMapsLink = extractDataFromGoogleMapsLink;
-window.extractFromGoogleMaps = extractFromGoogleMaps;
-window.fillFormWithExtractedData = fillFormWithExtractedData;
-window.showExtractedInfo = showExtractedInfo;
-window.showStatus = showStatus;
-window.diagnoseGooglePlacesAPI = diagnoseGooglePlacesAPI;
-
-console.log('✅ Places.js cargado correctamente');
-console.log('🔧 Funciones disponibles:');
-console.log('- extractDataFromGoogleMapsLink(url)');
-console.log('- extractFromGoogleMaps()');
-console.log('- diagnoseGooglePlacesAPI()');
+    console.log('🧪 Probando con Place ID d
