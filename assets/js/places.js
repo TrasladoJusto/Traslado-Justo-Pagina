@@ -19,6 +19,66 @@ function waitForConfig() {
     });
 }
 
+// Función auxiliar para extraer Place ID
+function extractPlaceId(url) {
+    console.log('Analizando URL:', url);
+    
+    // Si la URL está vacía o es undefined
+    if (!url || typeof url !== 'string') {
+        console.error('❌ URL no válida:', url);
+        return null;
+    }
+
+    // Limpiar la URL
+    url = url.trim();
+
+    // 1. Si ya es un Place ID directo (empieza con ChIJ o 0x...)
+    if (url.startsWith('ChIJ') || url.startsWith('0x')) {
+        console.log('✅ URL es un Place ID directo:', url);
+        return url;
+    }
+
+    // 2. Patrones para URLs de Google Maps
+    const patterns = [
+        /place_id=([^&]+)/,                    // Captura Place ID de `place_id=XYZ`
+        /cid=(\d+)/,                           // Captura CID de `cid=123`
+        /data=!4m[^!]+!1s(0x[0-9a-fA-F:]+)/,  // Captura IDs como `0x...`
+        /maps\/place\/[^/]+\/([^/?]+)/,        // Captura el último segmento en `maps/place/Nombre/+ID`
+        /maps\/place\/[^/]+\/data=!4m[^!]+!1s(0x[0-9a-fA-F:]+)/, // Patrón combinado
+        /maps\/place\/[^/]+\/data=!3m1!4b1!4m[^!]+!1s(0x[0-9a-fA-F:]+)/ // Otro patrón común
+    ];
+
+    for (const pattern of patterns) {
+        const match = url.match(pattern);
+        if (match && match[1]) {
+            const placeId = decodeURIComponent(match[1]);
+            console.log('✅ Place ID encontrado:', placeId);
+            return placeId;
+        }
+    }
+
+    // 3. Manejo de URLs cortas de maps.app.goo.gl
+    if (url.includes('maps.app.goo.gl')) {
+        console.warn('⚠️ URL corta detectada (maps.app.goo.gl)');
+        // Intentar extraer el último segmento
+        const lastSegment = url.split('/').pop();
+        if (lastSegment && lastSegment.length > 20) {
+            console.log('✅ Posible Place ID de URL corta:', lastSegment);
+            return lastSegment;
+        }
+    }
+
+    // 4. Intentar extraer cualquier segmento que parezca un Place ID
+    const possiblePlaceId = url.match(/[A-Za-z0-9_-]{27,}/);
+    if (possiblePlaceId) {
+        console.log('✅ Posible Place ID encontrado:', possiblePlaceId[0]);
+        return possiblePlaceId[0];
+    }
+
+    console.error('❌ No se pudo extraer Place ID de la URL:', url);
+    return null;
+}
+
 // Función principal para extraer datos
 async function extractDataFromGoogleMapsLink(url) {
     console.log('Iniciando extracción de datos...');
@@ -60,6 +120,13 @@ async function extractDataFromGoogleMapsLink(url) {
             if (!window.CONFIG.googleMaps.apiKey) {
                 throw new Error('Se requiere API Key válida de Google Places. Configúrala en config.js');
             }
+            
+            // Extraer Place ID
+            const placeId = extractPlaceId(url);
+            if (!placeId) {
+                throw new Error('No se pudo extraer un Place ID válido de la URL proporcionada. Por favor, verifica que la URL sea correcta.');
+            }
+            
             return await extractWithGoogleMaps(url);
         }
 
@@ -124,46 +191,6 @@ async function extractWithGoogleMaps(url) {
         };
         document.head.appendChild(script);
     });
-}
-
-// Función auxiliar para extraer Place ID
-function extractPlaceId(url) {
-    // 1. Si ya es un Place ID directo (empieza con ChIJ o 0x...)
-    if (url.startsWith('ChIJ') || url.startsWith('0x')) {
-        return url;
-    }
-
-    // 2. Patrones para URLs de Google Maps completas
-    const patterns = [
-        /place_id=([^&]+)/, // Captura Place ID de `place_id=XYZ`
-        /cid=(\d+)/,        // Captura CID de `cid=123` (formato antiguo)
-        /data=!4m[^!]+!1s(0x[0-9a-fA-F:]+)/, // Captura IDs como `0x...` dentro de la sección `data=!4m...`
-        /maps\/place\/[^/]+\/([^/?]+)/ // Captura el último segmento en `maps/place/Nombre/+ID`
-    ];
-
-    for (const pattern of patterns) {
-        const match = url.match(pattern);
-        if (match && match[1]) {
-            return decodeURIComponent(match[1]);
-        }
-    }
-
-    // 3. Manejo de URLs cortas de maps.app.goo.gl (con limitaciones en frontend)
-    // Estas URLs son redirecciones. El navegador no puede resolverlas por sí mismo
-    // para extraer el Place ID sin un backend que siga el redirect y analice la URL final.
-    // Tu función de Supabase es el lugar donde esto debe ser manejado robustamente.
-    if (url.includes('maps.app.goo.gl')) {
-        console.warn('⚠️ extractPlaceId: No se pudo extraer Place ID de URL corta (maps.app.goo.gl) en el frontend. Esto requiere un backend para resolver la redirección.');
-        // Intentamos una heurística simple, aunque no es 100% fiable para Place IDs desde URLs cortas.
-        const lastSegment = url.split('/').pop();
-        if (lastSegment && lastSegment.length > 20) { // Place IDs suelen ser largos
-            return lastSegment; // Podría ser un Place ID, pero no es seguro
-        }
-    }
-
-    // Si no se encuentra ningún Place ID, devuelve null
-    console.warn(`❌ extractPlaceId: No se pudo extraer un Place ID válido de la URL: "${url}"`);
-    return null;
 }
 
 // Formatear datos del lugar
