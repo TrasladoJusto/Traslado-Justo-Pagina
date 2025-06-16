@@ -21,15 +21,13 @@ function waitForConfig() {
 
 // Función auxiliar para extraer Place ID
 function extractPlaceId(url) {
-    console.log('Analizando URL:', url);
+    console.log('Analizando URL (cliente):', url);
     
-    // Si la URL está vacía o es undefined
     if (!url || typeof url !== 'string') {
         console.error('❌ URL no válida:', url);
         return null;
     }
 
-    // Limpiar la URL
     url = url.trim();
 
     // 1. Si ya es un Place ID directo (empieza con ChIJ o 0x...)
@@ -38,18 +36,17 @@ function extractPlaceId(url) {
         return url;
     }
 
-    // 2. Manejo especial para URLs cortas de maps.app.goo.gl
+    // Las URLs de maps.app.goo.gl son responsabilidad de Supabase
     if (url.includes('maps.app.goo.gl')) {
-        console.log('🔍 Detectada URL corta de Google Maps');
-        return null; // Devolvemos null para que se procese como URL corta
+        console.log('🔍 URL corta de Google Maps, delegando a Supabase.');
+        return null; 
     }
 
-    // 3. Patrones para URLs de Google Maps
+    // 2. Patrones para URLs de Google Maps (sin incluir el problemático de coordenadas)
     const patterns = [
         /place_id=([^&]+)/,                    // Captura Place ID de `place_id=XYZ`
         /cid=(\d+)/,                           // Captura CID de `cid=123`
         /data=!4m[^!]+!1s(0x[0-9a-fA-F:]+)/,  // Captura IDs como `0x...`
-        /maps\/place\/[^/]+\/([^/?]+)/,        // Captura el último segmento en `maps/place/Nombre/+ID`
         /maps\/place\/[^/]+\/data=!4m[^!]+!1s(0x[0-9a-fA-F:]+)/, // Patrón combinado
         /maps\/place\/[^/]+\/data=!3m1!4b1!4m[^!]+!1s(0x[0-9a-fA-F:]+)/ // Otro patrón común
     ];
@@ -58,12 +55,12 @@ function extractPlaceId(url) {
         const match = url.match(pattern);
         if (match && match[1]) {
             const placeId = decodeURIComponent(match[1]);
-            console.log('✅ Place ID encontrado:', placeId);
+            console.log('✅ Place ID encontrado (cliente):', placeId);
             return placeId;
         }
     }
 
-    console.error('❌ No se pudo extraer Place ID de la URL:', url);
+    console.error('❌ No se pudo extraer Place ID de la URL (cliente):', url);
     return null;
 }
 
@@ -132,56 +129,10 @@ async function extractWithSupabase(url) {
         console.log('URL a procesar:', url);
         
         const isShortUrl = url.includes('maps.app.goo.gl');
-        console.log('¿Es URL corta?', isShortUrl);
+        console.log('¿Es URL corta (cliente)?', isShortUrl);
         
-        // Primero intentamos resolver la URL corta
-        if (isShortUrl) {
-            console.log('🔄 Intentando resolver URL corta...');
-            const resolveResponse = await fetch(window.CONFIG.supabase.functionUrl, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${window.CONFIG.supabase.key}`
-                },
-                body: JSON.stringify({ 
-                    action: 'resolve_short_url',
-                    url: url
-                })
-            });
-
-            if (!resolveResponse.ok) {
-                const errorText = await resolveResponse.text();
-                console.error('❌ Error al resolver URL corta:', errorText);
-                throw new Error(`Error al resolver URL corta: ${errorText}`);
-            }
-
-            const resolvedData = await resolveResponse.json();
-            console.log('✅ URL corta resuelta:', resolvedData);
-            
-            if (resolvedData.error) {
-                throw new Error(resolvedData.error);
-            }
-
-            // Si tenemos un Place ID en la respuesta, lo usamos directamente
-            if (resolvedData.placeId) {
-                console.log('🔄 Usando Place ID resuelto:', resolvedData.placeId);
-                url = resolvedData.placeId;
-            } else if (resolvedData.resolvedUrl) {
-                // Si no, usamos la URL resuelta
-                url = resolvedData.resolvedUrl;
-                console.log('🔄 Usando URL resuelta:', url);
-            }
-        }
-
-        // Extraer el Place ID de la URL
-        const placeId = extractPlaceId(url);
-        if (!placeId) {
-            throw new Error('No se pudo extraer un Place ID válido de la URL');
-        }
-        
-        console.log('🔍 Place ID extraído:', placeId);
-        
-        // Ahora obtenemos los detalles del lugar
+        // La función de Supabase se encargará de resolver la URL y extraer el Place ID.
+        // Siempre enviamos la URL original a Supabase.
         const response = await fetch(window.CONFIG.supabase.functionUrl, {
             method: 'POST',
             headers: {
@@ -190,8 +141,7 @@ async function extractWithSupabase(url) {
             },
             body: JSON.stringify({ 
                 action: 'get_place_details',
-                url: url, // Enviamos la URL original
-                placeId: placeId, // También enviamos el Place ID extraído
+                url: url, // Siempre enviamos la URL original
                 fields: 'name,formatted_address,formatted_phone_number,website,rating,user_ratings_total,opening_hours,reviews,types,geometry,photos'
             })
         });
@@ -216,16 +166,16 @@ async function extractWithSupabase(url) {
     }
 }
 
-// Extracción usando Google Maps
+// Extracción usando Google Maps (solo para cuando NO se usa Supabase)
 async function extractWithGoogleMaps(url) {
     const placeId = extractPlaceId(url);
     if (!placeId) {
-        throw new Error('URL de Google Maps inválida');
+        throw new Error('URL de Google Maps inválida o Place ID no extraíble directamente por el cliente.');
     }
 
-    // Si es una URL corta, debemos usar Supabase
+    // Las URLs cortas deben ser manejadas por Supabase
     if (url.includes('maps.app.goo.gl')) {
-        console.log('🔄 Redirigiendo URL corta a Supabase...');
+        console.log('🔄 Delegando URL corta a Supabase desde extractWithGoogleMaps (esto no debería ocurrir si el flujo es correcto)...');
         return extractWithSupabase(url);
     }
 
@@ -252,13 +202,13 @@ async function extractWithGoogleMaps(url) {
 
         const apiUrl = `https://maps.googleapis.com/maps/api/place/details/json?place_id=${placeId}&fields=name,formatted_address,formatted_phone_number,website,rating,reviews,photos,opening_hours,types&key=${window.CONFIG.googleMaps.apiKey}&callback=${callbackName}`;
         
-        console.log('🌐 Cargando script de Google Places API...');
+        console.log('🌐 Cargando script de Google Places API (cliente)...');
         console.log('URL de la API:', apiUrl);
         
         script.src = apiUrl;
         script.async = true;
         script.onerror = () => {
-            console.error('❌ Error al cargar script de Google Places API');
+            console.error('❌ Error al cargar script de Google Places API (cliente)');
             reject(new Error('Error al cargar script de Google Places API. Verifica tu conexión a internet y la API Key.'));
             delete window[callbackName];
         };
