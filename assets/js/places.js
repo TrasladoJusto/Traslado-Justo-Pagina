@@ -41,8 +41,7 @@ function extractPlaceId(url) {
     // 2. Manejo especial para URLs cortas de maps.app.goo.gl
     if (url.includes('maps.app.goo.gl')) {
         console.log('🔍 Detectada URL corta de Google Maps');
-        // Para URLs cortas, necesitamos usar Supabase para resolverlas
-        return url; // Devolvemos la URL completa para que Supabase la procese
+        return null; // Devolvemos null para que se procese como URL corta
     }
 
     // 3. Patrones para URLs de Google Maps
@@ -173,6 +172,14 @@ async function extractWithSupabase(url) {
             url = resolvedData.resolvedUrl;
             console.log('🔄 Usando URL resuelta:', url);
         }
+
+        // Extraer el Place ID de la URL
+        const placeId = extractPlaceId(url);
+        if (!placeId) {
+            throw new Error('No se pudo extraer un Place ID válido de la URL');
+        }
+        
+        console.log('🔍 Place ID extraído:', placeId);
         
         // Ahora obtenemos los detalles del lugar
         const response = await fetch(window.CONFIG.supabase.functionUrl, {
@@ -182,8 +189,8 @@ async function extractWithSupabase(url) {
                 'Authorization': `Bearer ${window.CONFIG.supabase.key}`
             },
             body: JSON.stringify({ 
-                url: url,
                 action: 'get_place_details',
+                placeId: placeId, // Enviamos el Place ID directamente
                 fields: 'name,formatted_address,formatted_phone_number,website,rating,user_ratings_total,opening_hours,reviews,types,geometry,photos'
             })
         });
