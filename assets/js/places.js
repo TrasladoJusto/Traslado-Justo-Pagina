@@ -151,7 +151,9 @@ async function extractWithSupabase(url) {
             });
 
             if (!resolveResponse.ok) {
-                throw new Error(`Error al resolver URL corta: ${resolveResponse.status}`);
+                const errorText = await resolveResponse.text();
+                console.error('❌ Error al resolver URL corta:', errorText);
+                throw new Error(`Error al resolver URL corta: ${errorText}`);
             }
 
             const resolvedData = await resolveResponse.json();
@@ -161,7 +163,13 @@ async function extractWithSupabase(url) {
                 throw new Error(resolvedData.error);
             }
 
-            // Usamos la URL resuelta para obtener los detalles
+            // Si tenemos un Place ID en la respuesta, lo usamos directamente
+            if (resolvedData.placeId) {
+                console.log('🔄 Usando Place ID resuelto:', resolvedData.placeId);
+                return extractWithGoogleMaps(resolvedData.placeId);
+            }
+
+            // Si no, usamos la URL resuelta
             url = resolvedData.resolvedUrl;
             console.log('🔄 Usando URL resuelta:', url);
         }
