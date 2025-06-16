@@ -165,12 +165,12 @@ async function extractWithSupabase(url) {
             // Si tenemos un Place ID en la respuesta, lo usamos directamente
             if (resolvedData.placeId) {
                 console.log('🔄 Usando Place ID resuelto:', resolvedData.placeId);
-                return extractWithGoogleMaps(resolvedData.placeId);
+                url = resolvedData.placeId;
+            } else if (resolvedData.resolvedUrl) {
+                // Si no, usamos la URL resuelta
+                url = resolvedData.resolvedUrl;
+                console.log('🔄 Usando URL resuelta:', url);
             }
-
-            // Si no, usamos la URL resuelta
-            url = resolvedData.resolvedUrl;
-            console.log('🔄 Usando URL resuelta:', url);
         }
 
         // Extraer el Place ID de la URL
@@ -190,7 +190,8 @@ async function extractWithSupabase(url) {
             },
             body: JSON.stringify({ 
                 action: 'get_place_details',
-                placeId: placeId, // Enviamos el Place ID directamente
+                url: url, // Enviamos la URL original
+                placeId: placeId, // También enviamos el Place ID extraído
                 fields: 'name,formatted_address,formatted_phone_number,website,rating,user_ratings_total,opening_hours,reviews,types,geometry,photos'
             })
         });
